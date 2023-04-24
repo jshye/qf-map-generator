@@ -1,5 +1,5 @@
 import tensorflow as tf
-from .utils import *
+import utils
 from .jpeg_layers import *
 from .layers import RankToQF, RankToQFDec, QFToScale
 from .generator import QFMapGenerator
