@@ -1,9 +1,6 @@
 import tensorflow as tf
 import numpy as np
-import random
 import math
-from PIL import Image
-from io import BytesIO
 
 
 def rgb_to_ycbcr(input, diff_round):
