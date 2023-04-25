@@ -54,6 +54,22 @@ class RankToQFDec(tfklayers.Layer):
         dec_qf = tf.stack([y_dec_qf, c_dec_qf], axis=-1)
         dec_qf = self.diff_round(dec_qf)
         return dec_qf
+    
+
+class RankToQFNorm(tfklayers.Layer):
+    def __init__(self, diff_round, name='rank_to_qf_norm'):
+        super(RankToQFNorm, self).__init__(name=name)
+        self.diff_round = diff_round
+
+    def call(self, inputs):
+        dec_qf, ymin, ymax, cmin, cmax = inputs
+
+        y_dec_qf = ymin + (ymax - ymin) * dec_qf[...,0]
+        c_dec_qf = cmin + (cmax - cmin) * dec_qf[...,1]
+        
+        dec_qf = tf.stack([y_dec_qf, c_dec_qf], axis=-1)
+        dec_qf = self.diff_round(dec_qf)
+        return dec_qf
 
 
 class QFToScale(tfklayers.Layer):
