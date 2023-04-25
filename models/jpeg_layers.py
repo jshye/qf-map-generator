@@ -1,6 +1,8 @@
 import tensorflow as tf
 import tensorflow.keras.layers as tfklayers
-from .jpeg_utils import *
+from utils import *
+from utils.jpeg_utils import _DCT_MATRIX_8x8
+
 
 class RGBToYCbCr(tfklayers.Layer):
     def __init__(self, diff_round, name='rgb_to_ycbcr'):
