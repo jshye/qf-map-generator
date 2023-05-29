@@ -4,3 +4,4 @@ from .generator import *
 from .jpeg_layers import *
 from .layers import *
 from .predictor import *
+from .model import *
