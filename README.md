@@ -1,5 +1,7 @@
 # An Overhead-Free Region-Based JPEG Framework for Task-Driven Image Compression
 
+[Paper](https://www.sciencedirect.com/science/article/abs/pii/S016786552200349X)
+
 <p align='center'>
     <img src='./figures/fig1.png' width='600px'/>
 </p>
@@ -9,11 +11,16 @@
 
 
 ## TensorFlow Implementation
+### Requirements
+- TensorFlow 2.5.0
+- Numpy 1.19.5
 
+### Structure
 ```bash
 qf-map-generator
-├── artifacts
-│   └── # trained models
+├── artifacts  # trained models
+│   ├── bpp_estimator
+│   └── ...
 ├── figures
 │   └── fig1.png
 ├── models
@@ -23,6 +30,7 @@ qf-map-generator
 │   ├── generator.py
 │   ├── jpeg_layers.py
 │   ├── layers.py
+│   ├── model.py
 │   └── predictor.py
 ├── samples
 │   └── # test input images
@@ -32,5 +40,16 @@ qf-map-generator
 │    ├── misc.py
 │    └── preprocess.py
 ├── test.py
+├── train.py
 └── README.md
+```
+
+### Train QF Map Generator & Predictor
+```bash
+python train.py --data_dir <path-to-imagenet-downloads>
+```
+
+### Visualize QF Maps for Sample Images Using Trained Models
+```bash
+python test.py --data_dir <path-to-sample-images-folder>
 ```
