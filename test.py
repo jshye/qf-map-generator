@@ -42,7 +42,7 @@ def main(args):
     AUTOTUNE = tf.data.experimental.AUTOTUNE
     preprocess_fn = partial(preprocess_img, size=args.img_size)
 
-    image_paths = glob(os.path.join(args.datadir, '*.JPEG'))
+    image_paths = glob(os.path.join(args.data_dir, '*.JPEG'))
     dataset = tf.data.Dataset.from_tensor_slices(image_paths)
     dataset = dataset.map(read_image, num_parallel_calls=AUTOTUNE)
     dataset = dataset.map(preprocess_fn)
@@ -67,8 +67,8 @@ def main(args):
         dec_outputs = jpeg_decoder(dec_inputs)
 
         for i, (img, enc_qf, dec_qf) in enumerate(zip(dec_outputs['rgb'], 
-                                                    enc_outputs['qf_map'], 
-                                                    dec_outputs['qf_map'])):
+                                                      enc_outputs['qf_map'], 
+                                                      dec_outputs['qf_map'])):
             fig = viz_results(img, enc_qf, dec_qf, display=False, verbose=True,
                               figname=f'result{args.batch_size*bidx+i:04d}.png')
 
@@ -76,7 +76,7 @@ def main(args):
 if __name__ == "__main__":
     parser = ArgumentParser()
 
-    parser.add_argument('--datadir', type=str, default='./samples', help='Input image data directory.')
+    parser.add_argument('--data_dir', type=str, default='./samples', help='Input image data directory.')
     parser.add_argument('--img_size', type=int, default=224, help='Image size.')
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size.')
 
