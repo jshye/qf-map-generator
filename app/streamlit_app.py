@@ -59,20 +59,20 @@ def qf_to_scale(qf):
 def main():
     st.set_page_config(layout='wide')
 
+    with st.sidebar:
+        st.title('An Overhead-Free Region-Based JPEG Framework \
+                for Task-Driven Image Compression')
+        file = st.file_uploader("Upload an Image", type=["jpg", "jpeg", "png"])
+
     try:
         std_jpeg = load_model('./assets/stdjpeg-scale01')
     except:
-        st.text('Failed to load standard jpeg')
+        std_jpeg = None
 
     try:
         model = load_model('./assets/end-to-end')
     except:
         st.text('Failed to load QF Map generator and predictor')
-
-    with st.sidebar:
-        st.title('An Overhead-Free Region-Based JPEG Framework \
-                for Task-Driven Image Compression')
-        file = st.file_uploader("Upload an Image", type=["jpg", "jpeg", "png"])
 
     if file is None:
         st.text('Waiting for image upload...')
@@ -83,19 +83,11 @@ def main():
             qf = st.slider("Quality Factor for the standard JPEG", 
                            min_value=2, max_value=50, value=8, step=1)
         
-        scale = qf_to_scale(qf)
-        std_jpeg.scale.assign(scale)
-
         x = preprocess_img(img)
 
         logits, _, enc_qf, _, dec_qf, _, _, qdct, rgb, _ = model(x)
-        std_logits, _, std_qdct, std_rgb, _ = std_jpeg(x)
-
         preds = tf.keras.applications.imagenet_utils.decode_predictions(logits.numpy(), top=1)
-        std_preds = tf.keras.applications.imagenet_utils.decode_predictions(std_logits.numpy(), top=1)
-
         bpp = get_bpp(rgb)
-        std_bpp = get_bpp(std_rgb)
 
         ct1 = st.container()
 
@@ -110,11 +102,22 @@ def main():
                 st.text(f'[ResNet50] {preds[0][0][1]} {preds[0][0][2]:.2%}')
                 st.text(f'{bpp:.4f} BPP')  #TODO: bpp calculation from qdct
 
+        if std_jpeg:
+            scale = qf_to_scale(qf)
+            std_jpeg.scale.assign(scale)
+            
+            std_logits, _, std_qdct, std_rgb, _ = std_jpeg(x)
+            std_preds = tf.keras.applications.imagenet_utils.decode_predictions(std_logits.numpy(), top=1)
+            std_bpp = get_bpp(std_rgb)
+
             with ct1_c3:
                 st.image(std_rgb.numpy()/255., width=250, use_column_width=True, caption='Standard JPEG')
                 st.text(f'[ResNet50] {std_preds[0][0][1]} {std_preds[0][0][2]:.2%}')
                 st.text(f'{std_bpp:.4f} BPP')  #TODO: bpp calculation from qdct
-
+        else:
+            with ct1_c3:
+                st.text('Failed to load standard jpeg')
+        
         with st.expander('See QF Maps'):
             ec1, ec2 = st.columns((1,1))
 
