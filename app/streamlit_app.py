@@ -1,5 +1,5 @@
 import os
-import sys
+from math import floor
 import requests
 import zipfile
 import streamlit as st
@@ -8,10 +8,6 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 from io import BytesIO
-
-sys.path.insert(0, '../')
-from models import *
-from utils import *
 
 
 @st.cache_resource()
@@ -47,6 +43,17 @@ def get_bpp(img, img_size=224.):  # workaround
         img_.save(buffer, format='PNG')
         bpp = buffer.getbuffer().nbytes / (img_size * img_size) 
     return bpp
+
+
+def qf_to_scale(qf):
+    qf = int(qf)
+    if qf < 50 and qf >= 1:
+        scale = floor(5000 / qf)
+    elif qf < 100 and qf >= 50:
+        scale = 200 - 2 * qf
+    else:
+        scale = 10  # QF95
+    return scale / 100.
 
 
 def main():
