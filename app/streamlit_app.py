@@ -1,15 +1,35 @@
+import os
+import sys
+import requests
+import zipfile
 import streamlit as st
 import plotly.express as px
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-from models import *
 from io import BytesIO
+
+sys.path.insert(0, '../')
+from models import *
+from utils import *
 
 
 @st.cache_resource()
 def load_model(model_path):
+    if not os.path.exists(model_path):
+        model_name = model_path.split('/')[-1]
+        model_url = st.secrets[model_name]
+
+        with st.spinner('Downloading model... this may take a while!'):
+            response = requests.get(model_url)
+            with open(f'{model_name}.zip', 'wb') as f:
+                f.write(response.content)
+
+            with zipfile.ZipFile(f'{model_name}.zip') as z:
+                z.extractall(model_path)
+            
     model = tf.keras.models.load_model(model_path)
+
     return model
 
 
@@ -33,12 +53,12 @@ def main():
     st.set_page_config(layout='wide')
 
     try:
-        std_jpeg = load_model('./artifacts/stdjpeg-scale01')
+        std_jpeg = load_model('./assets/stdjpeg-scale01')
     except:
         st.text('Failed to load standard jpeg')
 
     try:
-        model = load_model('./artifacts/end-to-end')
+        model = load_model('./assets/end-to-end')
     except:
         st.text('Failed to load QF Map generator and predictor')
 
