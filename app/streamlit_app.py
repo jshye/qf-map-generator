@@ -29,6 +29,28 @@ def load_model(model_path):
     return model
 
 
+@st.cache_data
+def load_image(img_file):
+    img = Image.open(img_file)
+    st.image(img, caption='Uploaded Image', width=200)
+    return img
+
+
+@st.cache_data
+def show_qfmap(qfmap, title):
+    fig = px.imshow(qfmap)
+    fig.update_layout(title_text=title, title_x=0.35, 
+                                margin={'autoexpand': True})
+    fig.update_xaxes(showticklabels=False)
+    fig.update_yaxes(showticklabels=False)
+    fig.update_coloraxes(colorbar_len=1, 
+                                    colorbar_orientation='h', 
+                                    colorbar_thickness=15,
+                                    colorbar_yanchor='bottom',
+                                    colorbar_y=-0.5)
+    st.plotly_chart(fig, use_container_width=True)
+
+
 def preprocess_img(img):
     x = np.array(img)
     x = tf.image.resize([x], [224, 224], method='bicubic')
@@ -37,6 +59,7 @@ def preprocess_img(img):
     return x
 
 
+@st.cache_data
 def get_bpp(img, img_size=224.):  # workaround
     img_ = tf.keras.utils.array_to_img(img[0])
     with BytesIO() as buffer:
@@ -62,7 +85,7 @@ def main():
     with st.sidebar:
         st.title('An Overhead-Free Region-Based JPEG Framework \
                 for Task-Driven Image Compression')
-        file = st.file_uploader("Upload an Image", type=["jpg", "jpeg", "png"])
+        file = st.file_uploader("Upload an Image", type=["jpg", "jpeg"])
 
     try:
         std_jpeg = load_model('./assets/stdjpeg-scale01')
@@ -78,8 +101,7 @@ def main():
         st.text('Waiting for image upload...')
     else:
         with st.sidebar:
-            img = Image.open(file)
-            st.image(img, caption='Uploaded Image', width=200)
+            img = load_image(file)
             qf = st.slider("Quality Factor for the standard JPEG", 
                            min_value=2, max_value=50, value=8, step=1)
         
@@ -87,7 +109,7 @@ def main():
 
         logits, _, enc_qf, _, dec_qf, _, _, qdct, rgb, _ = model(x)
         preds = tf.keras.applications.imagenet_utils.decode_predictions(logits.numpy(), top=1)
-        bpp = get_bpp(rgb)
+        bpp = get_bpp(rgb.numpy())
 
         ct1 = st.container()
 
@@ -108,7 +130,7 @@ def main():
             
             std_logits, _, std_qdct, std_rgb, _ = std_jpeg(x)
             std_preds = tf.keras.applications.imagenet_utils.decode_predictions(std_logits.numpy(), top=1)
-            std_bpp = get_bpp(std_rgb)
+            std_bpp = get_bpp(std_rgb.numpy())
 
             with ct1_c3:
                 st.image(std_rgb.numpy()/255., width=250, use_column_width=True, caption='Standard JPEG')
@@ -128,30 +150,10 @@ def main():
                 ec1_1, ec1_2 = st.columns((1,1))
                 
                 with ec1_1:
-                    luma_enc_qf = px.imshow(enc_qf[0,:,:,0])
-                    luma_enc_qf.update_layout(title_text='Luma Channel', title_x=0.4, 
-                                              margin={'autoexpand': True})
-                    luma_enc_qf.update_xaxes(showticklabels=False)
-                    luma_enc_qf.update_yaxes(showticklabels=False)
-                    luma_enc_qf.update_coloraxes(colorbar_len=1, 
-                                                 colorbar_orientation='h', 
-                                                 colorbar_thickness=15,
-                                                 colorbar_yanchor='bottom',
-                                                 colorbar_y=-0.5)
-                    st.plotly_chart(luma_enc_qf, use_container_width=True)
+                    show_qfmap(enc_qf[0,:,:,0].numpy(), 'Luma Channel')
 
                 with ec1_2:
-                    chroma_enc_qf = px.imshow(enc_qf[0,:,:,1])
-                    chroma_enc_qf.update_layout(title_text='Chroma Channel', title_x=0.2, 
-                                                margin={'autoexpand': True})
-                    chroma_enc_qf.update_xaxes(showticklabels=False)
-                    chroma_enc_qf.update_yaxes(showticklabels=False)
-                    chroma_enc_qf.update_coloraxes(colorbar_len=1, 
-                                                   colorbar_orientation='h', 
-                                                   colorbar_thickness=15,
-                                                   colorbar_yanchor='bottom',
-                                                   colorbar_y=-0.5)
-                    st.plotly_chart(chroma_enc_qf, use_container_width=True)
+                    show_qfmap(enc_qf[0,:,:,1].numpy(), 'Chroma Channel')
 
             with ec2:
                 st.markdown("<h3 style='text-align: center; color: #E1D9D1;'>Predicted QF Maps</h3>", 
@@ -160,30 +162,10 @@ def main():
                 ec2_1, ec2_2 = st.columns((1,1))
 
                 with ec2_1:
-                    luma_dec_qf = px.imshow(dec_qf[0,:,:,0])
-                    luma_dec_qf.update_layout(title_text='Luma Channel', title_x=0.4, 
-                                              margin={'autoexpand': True})
-                    luma_dec_qf.update_xaxes(showticklabels=False)
-                    luma_dec_qf.update_yaxes(showticklabels=False)
-                    luma_dec_qf.update_coloraxes(colorbar_len=1, 
-                                                 colorbar_orientation='h', 
-                                                 colorbar_thickness=15,
-                                                 colorbar_yanchor='bottom',
-                                                 colorbar_y=-0.5)
-                    st.plotly_chart(luma_dec_qf, use_container_width=True)
+                    show_qfmap(dec_qf[0,:,:,0].numpy(), 'Luma Channel')
 
                 with ec2_2:
-                    chroma_dec_qf = px.imshow(dec_qf[0,:,:,1])
-                    chroma_dec_qf.update_layout(title_text='Chroma Channel', title_x=0.2,
-                                                margin={'autoexpand': True})
-                    chroma_dec_qf.update_xaxes(showticklabels=False)
-                    chroma_dec_qf.update_yaxes(showticklabels=False)
-                    chroma_dec_qf.update_coloraxes(colorbar_len=1, 
-                                                   colorbar_orientation='h', 
-                                                   colorbar_thickness=15,
-                                                   colorbar_yanchor='bottom',
-                                                   colorbar_y=-0.5)
-                    st.plotly_chart(chroma_dec_qf, use_container_width=True)
+                    show_qfmap(dec_qf[0,:,:,1].numpy(), 'Chroma Channel')
 
 
 if __name__ == "__main__":
