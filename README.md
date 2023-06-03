@@ -18,6 +18,9 @@
 ### Structure
 ```bash
 qf-map-generator
+├── app
+│   ├── requirements.txt
+│   └── streamlit_app.py
 ├── artifacts  # trained models
 │   ├── bpp_estimator
 │   └── ...
@@ -52,4 +55,21 @@ python train.py --data_dir <path-to-imagenet-downloads>
 ### Visualize QF Maps for Sample Images Using Trained Models
 ```bash
 python test.py --data_dir <path-to-sample-images-folder>
+```
+
+### Streamlit Application
+
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://qf-map-generator.streamlit.app/)
+
+<p align='center'>
+    <img src='./figures/fig_app.gif' width='400px'/>
+</p>
+
+
+#### Run Locally
+
+```bash
+cd app
+pip install -r requirements.txt
+streamlit run streamlit_app.py
 ```
